@@ -44,33 +44,13 @@ class TitleRepository(val network: MainNetwork, val titleDao: TitleDao) {
      */
     val title: LiveData<String?> = titleDao.titleLiveData.map { it?.title }
 
-
-    // TODO: Add coroutines-based `fun refreshTitle` here
-
-    /**
-     * Refresh the current title and save the results to the offline cache.
-     *
-     * This method does not return the new title. Use [TitleRepository.title] to observe
-     * the current tile.
-     */
-    suspend fun refreshTitleWithCallbacks(titleRefreshCallback: TitleRefreshCallback) {
-        withContext(Dispatchers.IO) {
-            val result = try {
-                network.fetchNextTitle().execute()
-            } catch (cause: Throwable) {
-                throw TitleRefreshError("Unable to refresh title", cause)
-            }
-            if (result.isSuccessful) {
-                titleDao.insertTitle(Title(result.body()!!))
-                titleRefreshCallback.onCompleted()
-            } else {
-                throw TitleRefreshError("Unable to refresh title", null)
-            }
-        }
-    }
-
     suspend fun refreshTitle() {
-        delay(500)
+        try {
+            val result = network.fetchNextTitle()
+            titleDao.insertTitle(Title(result))
+        } catch (cause: Throwable) {
+            throw TitleRefreshError("Unable to refresh title", cause)
+        }
     }
 }
 
