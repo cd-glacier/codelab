@@ -17,6 +17,7 @@ interface AppComponent {
     }
 
     fun registrationComponent(): RegistrationComponent.Factory
+    fun loginComponent(): LoginComponent.Factory
 
     fun inject(activity: MainActivity)
 }
